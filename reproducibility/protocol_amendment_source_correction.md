@@ -1,0 +1,3 @@
+# Source amendment after the initial analysis
+
+The initially frozen local rice input was found to retain duplicated Gyeongnam values under Gangwon Goseong. The final input is the server daily file independently reproduced from province-qualified raw cell records. This amendment was made after seeing both versions and is not claimed as preregistered. All analytical thresholds, comparators, seeds and eligibility rules remain those in the original protocol. Both versions and all failed/superseded runs are preserved. Final rice SHA-256: dad24668e0cdd1696c0e2f7057bf4d55da8e83e0f8701664d292d9f072d86fbc.

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+# source inputs and record-level outputs are not redistributed
+data/
+results/
+*.env
