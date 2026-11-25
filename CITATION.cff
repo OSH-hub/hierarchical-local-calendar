@@ -11,7 +11,7 @@ license: MIT
 date-released: "2026-11-25"
 preferred-citation:
   type: unpublished
-  title: "A Hierarchical Local Calendar for Crop Disease Warning: County-Level Adaptation Learned from Routine Surveillance Outperforms a National Weather-Driven Model"
+  title: "A Hierarchical Local Calendar Learned from Routine Surveillance Improves on a National Weather-Driven Warning for Apple and Rice Diseases"
   authors:
     - family-names: Oh
       given-names: Seunghong
