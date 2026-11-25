@@ -1,9 +1,11 @@
 __pycache__/
 *.pyc
+.pytest_cache/
 .ipynb_checkpoints/
 .DS_Store
 Thumbs.db
 # source inputs and record-level outputs are not redistributed
 data/
 results/
+example_data/
 *.env

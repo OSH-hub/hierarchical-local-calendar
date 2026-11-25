@@ -1,0 +1,4 @@
+model,threshold,synthetic_archives,draws_each,rejection_rate_circular_POD,rejection_rate_year_perm_POD,rejection_rate_year_perm_PSS,synthetic_POD_mean,synthetic_PSS_mean
+AMB,3,200,199,0.475,0.02,0.045,0.6488387096774193,0.2936695148116084
+ABR,3,200,199,1.0,0.02,0.03,0.5783870967741936,0.31469938913299755
+RB_IR,2,200,199,1.0,0.045,0.065,0.988019431988042,0.06254258998946073

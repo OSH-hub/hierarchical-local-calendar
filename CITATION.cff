@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this code or these tables, please cite the article."
-title: "disease-warning-verification: analysis code and aggregate results"
+title: "Hierarchical local calendar for crop disease warning: analysis code and aggregate results"
 type: software
 authors:
   - family-names: Oh
@@ -8,10 +8,10 @@ authors:
     affiliation: "ANCHOR Project Group, Konkuk University Glocal Campus"
 repository-code: "https://github.com/OSH-hub/disease-warning-verification"
 license: MIT
-date-released: "2026-11-22"
+date-released: "2026-11-25"
 preferred-citation:
   type: unpublished
-  title: "A Verification Framework for Archived Crop Disease Risk Warnings: Detection, Warning Burden and False Alarms in Korean Apple and Rice Pathosystems"
+  title: "A Hierarchical Local Calendar for Crop Disease Warning: County-Level Adaptation Learned from Routine Surveillance Outperforms a National Weather-Driven Model"
   authors:
     - family-names: Oh
       given-names: Seunghong

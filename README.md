@@ -1,63 +1,111 @@
-# disease-warning-verification
+# Hierarchical local calendar for crop disease warning
 
-Analysis code and aggregate results for the article
+Code, aggregate tables and figures for a county-level disease warning model learned from
+routine surveillance, and for the verification procedure used to test it against the
+national operational warning (apple Marssonina blotch, apple bitter rot, rice leaf blast; Korea).
 
-> Oh, S. *A Verification Framework for Archived Crop Disease Risk Warnings: Detection, Warning Burden and False Alarms in Korean Apple and Rice Pathosystems*.
-
-The framework verifies archived crop-disease risk warnings against county surveillance records and reports three things together: event detection, warning-day burden relative to fixed seasonal calendars, and the false-alarm ratio under explicit episode-eligibility rules. It is applied to apple Marssonina blotch (AMB), apple anthracnose (ABR) and rice leaf blast (RLB; code `RB_IR` in the tables) in Korea.
+Every number and figure of the article is produced by the scripts in `src/` and stored in
+`tables/` and `figures/`. The figures are drawn from the tables only.
 
 ## Contents
 
-| Path | Contents |
+| Path | Purpose |
 |---|---|
-| `reproducibility/recalculate_main_analysis.py` | Main analysis (produces Data S1–S10) |
-| `reproducibility/complete_followup_sensitivity.py` | Complete-follow-up sensitivity (produces Data S11) |
-| `reproducibility/render_figures_from_tables.py` | Redraws the four result figures from the aggregate tables |
-| `reproducibility/analysis_protocol.md`, `reproducibility/protocol_amendment_source_correction.md` | Analysis protocol extract and source-correction amendment |
-| `reproducibility/source_checksums.json` | SHA-256 checksums of the four source inputs |
-| `reproducibility/data_access.md` | Source access routes and conditions |
-| `tables/DataS01_metrics_support_and_phase.csv` | Data S1: all thresholds, comparators, supports and episode populations |
-| `tables/DataS02_paired_calendar_comparison.csv` | Data S2: paired calendar comparisons |
-| `tables/DataS03_matched_warning_budget_shifts.csv` | Data S3: equal-budget circular-shift summaries |
-| `tables/DataS04_temporal_seasonal_control.csv` | Data S4: earlier-year fitted seasonal controls |
-| `tables/DataS05_year_inventory.csv` | Data S5: risk and surveillance availability by year |
-| `tables/DataS06_temporal_sensitivity.csv` | Data S6: temporal sensitivity |
-| `tables/DataS07_observation_quality_sensitivity.csv` | Data S7: observation-quality sensitivity |
-| `tables/DataS08_province_omission.csv` | Data S8: province omission |
-| `tables/DataS09_window_gap_sensitivity.csv` | Data S9: window/gap sensitivity |
-| `tables/DataS10_source_version_sensitivity.csv` | Data S10: source-version sensitivity |
-| `tables/DataS11_complete_followup.csv`, `tables/DataS11_complete_followup_checks.json` | Data S11: complete-follow-up results and checks |
-| `figures/` | The four result figures (Figures 2–5 of the article; files `figure1_…` to `figure4_…`) as PNG and PDF |
-| `SHA256SUMS.txt` | SHA-256 checksums of the files in this repository |
+| `src/local_calendar.py` | The model: national, province and county calendars with shrinkage |
+| `src/verification.py` | Verification units, contingency scores, cluster bootstrap, year permutation, cost-loss value |
+| `src/reference.py` | Seasonal reference forecast, weighted ROC area |
+| `src/loader.py` | Reads the input files and checks their SHA-256 checksums |
+| `src/run_data_summaries.py` | Descriptions of the input data (tables D01-D04) |
+| `src/run_reanalysis.py` | Verification of the operational warning (tables R01-R05, R10) |
+| `src/run_controls.py` | Timing controls and their validation, data flow (tables R06-R09) |
+| `src/run_local_model.py` | Evaluation of the local calendar, learning curve, new-county adaptation (tables M01-M03) |
+| `src/run_local_checks.py` | Sensitivity, permutation test, value, county table, ROC points (tables M04-M13) |
+| `src/render_figures.py` | Figures 1-20 of the article |
+| `src/run_all.py` | Runs all of the above in order |
+| `examples/` | Synthetic data generator and an end-to-end example |
+| `tests/` | Unit tests and an end-to-end test on synthetic data |
+| `tables/`, `figures/` | Released outputs; figure file names carry the figure numbers of the article |
 
-## Included and excluded
+## Requirements
 
-Included: analysis code, aggregate result tables, figure sources, the protocol extract and checksums of the source inputs.
+Python 3.11 with the pinned packages:
 
-Excluded: the original responses of the provider's services and the derived event, episode and day-level records. The daily risk archive was retrieved from a public map endpoint of the National Crop Pest Management System (NCPMS) of the Rural Development Administration, Republic of Korea, and remains subject to the provider's copyright notice; it is therefore not redistributed here. No access keys or credentials are included.
+```
+pip install -r requirements.txt
+```
 
-## Running
+The analysis was run with Python 3.11.9 on Windows 11 (64-bit).
 
-Requirements: Python 3.11, NumPy, pandas, Matplotlib.
+## Quick start without the public data
 
-Redraw the figures from the aggregate tables (no source data needed):
+```
+python examples/make_synthetic_data.py example_data
+python examples/run_example.py example_data
+pytest -q
+python src/render_figures.py
+```
 
-    python reproducibility/render_figures_from_tables.py
+The example prints, for two synthetic diseases, the ROC area of the synthetic operational
+warning, the national calendar and the county calendar. The ten tests finish in a few
+seconds. The last command redraws all figures from the released tables.
 
-Recalculate the analysis from the source inputs (requires the four inputs listed in `reproducibility/source_checksums.json`, arranged in a project directory):
+## Reproducing the tables
 
-    python reproducibility/recalculate_main_analysis.py --project PATH_TO_PROJECT [--rice-source PATH_TO_RICE_DAILY_CSV]
-    python reproducibility/complete_followup_sensitivity.py --project PATH_TO_PROJECT --episodes results/episodes.csv
+The inputs are public records of the Rural Development Administration (NCPMS). They are not
+redistributed here. Place them under a project directory as
 
-The main script checks the SHA-256 of all four inputs before calculation.
+```
+data/pairing/pairing_daily.csv                  daily risk level per apple county
+data/pairing/pairing_daily_rice.csv             daily risk level per rice county
+data/ncpms_api/apple_surveillance_sigungu.csv   apple surveillance records
+data/ncpms_api/rice_surveillance_sigungu.csv    rice surveillance records
+data/agri_weather/valid_cells.csv               grid-cell coordinates of the apple counties
+data/agri_weather/valid_cells_rice.csv          grid-cell coordinates of the rice counties
+```
 
-## Data sources and conditions of use
+and run
 
-- Surveillance records: NCPMS OpenAPI (https://ncpms.rda.go.kr/npms/OpenApiInfo.np), listed on the Korean Public Data Portal as dataset 15058192 (https://www.data.go.kr/data/15058192/openapi.do).
-- Daily risk series: public forecast-map page of NCPMS (https://ncpms.rda.go.kr/npms/NewSpaceDistributionSearchR.np), subject to the provider's data-use and copyright notice (https://ncpms.rda.go.kr/npms/DatacprprotM.np).
+```
+python src/run_all.py --project <project directory>
+```
 
-See `reproducibility/data_access.md` for details.
+The loader stops with an error if a risk or surveillance file differs from the checksums of
+the files used in the article. The run takes about five minutes on a desktop computer. All
+random draws use the seed 20261026; two independent runs gave byte-identical tables
+(`SHA256SUMS.txt`).
 
-## License and citation
+## Tables
 
-Code and aggregate tables are released under the MIT License (see `LICENSE`). Please cite the article; citation metadata are in `CITATION.cff`.
+| Table | Content |
+|---|---|
+| D01 | Centre of the grid cells of each county |
+| D02 | Valid surveys and day of first detection per county-year |
+| D03 | Share of counties at or above each risk threshold by day and year |
+| D04 | Day of year of every valid survey and whether it was positive |
+| R01 | Contingency scores of the operational warning and the fixed calendars, with intervals |
+| R02 | ROC areas of the operational warning and the seasonal reference |
+| R03 | Paired differences between the operational warning and the fixed calendars |
+| R04 | Year-permutation control of the operational warning |
+| R05a, R05b | Cost-loss value of the operational warning and the fixed calendars |
+| R06 | Season gate fitted out of sample |
+| R07, R08 | Timing controls on the observed archive and on archives with no link to the outcome |
+| R09 | Records retained at each step |
+| R10 | Year-permutation null distribution |
+| M01 | Scores of the national, province and county calendars under three evaluation designs |
+| M02 | Learning curve |
+| M03 | Adaptation of a county new to the model |
+| M04 | Sensitivity to kernel bandwidth and prior strength |
+| M05 | County-label permutation test |
+| M06 | Scores among county-years surveyed on the usual schedule |
+| M07 | Cost-loss value of the calendars |
+| M08 | County calendar table: timing shift, height ratio and period of elevated risk per county |
+| M09 | Daily probability curves of the national and county calendars |
+| M10 | ROC area of each forecast in each test year |
+| M11 | Reliability of the predicted probabilities |
+| M12 | Points of the ROC curves |
+| M13 | County-label permutation null distribution |
+
+## Licence
+
+Code: MIT. Tables and figures: CC BY 4.0. The input records remain subject to the terms of
+the Rural Development Administration.

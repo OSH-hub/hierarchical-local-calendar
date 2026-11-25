@@ -1,0 +1,4 @@
+model,rows_through_2025,rows_with_numeric_value,rows_in_counties_with_risk_series,counties_surveyed,counties_with_risk_series,risk_county_years,county_years_with_valid_survey,counties_with_valid_survey,years_with_valid_survey,valid_surveys,positive_surveys,first_detection_units,event_county_years,events_at_first_survey,negative_county_years,event_counties,units_with_truncated_window
+AMB,2256,1689,1661,26,24,264,212,24,11,1661,711,1012,155,26,57,24,0
+ABR,1080,895,875,25,24,264,101,24,5,875,229,664,62,1,39,21,0
+RB_IR,13251,13251,12706,146,137,1644,1594,137,12,12706,1529,10536,669,5,925,132,1589
