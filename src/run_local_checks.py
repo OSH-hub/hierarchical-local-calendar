@@ -5,7 +5,7 @@ Usage
 python src/run_local_checks.py [--out <dir>]
 
 Reads results/verification_units.csv and results/local_calendar_predictions.csv.
-Writes tables/M04 ... M13.
+Writes tables/M04 ... M14.
 """
 from __future__ import annotations
 
@@ -175,6 +175,37 @@ def reliability_rows(preds: pd.DataFrame, model: str, n_bins: int = 6) -> list[d
     return rows
 
 
+def updating_rows(d: dict, preds: pd.DataFrame, model: str, first_test_year: int = 2020) -> list[dict]:
+    """Updated (rolling-origin) and frozen (fitted through the year before) calendars on the same test years."""
+    train, test = d["year"] < first_test_year, d["year"] >= first_test_year
+    if d["pos"][train].sum() < 10:
+        return []
+    frozen = fit_on(d, train)
+    sub = preds[preds["year"] >= first_test_year].reset_index(drop=True)
+    keys = pd.DataFrame({"county": d["county"][test], "year": d["year"][test], "doy": d["doy"][test],
+                         "frozen_county": predict_on(frozen, d, test, LEVELS["county_calendar"]),
+                         "frozen_national": predict_on(frozen, d, test, LEVELS["national_calendar"])})
+    lookup = pd.Series(range(len(d["prov_of"])), index=sorted(preds["county"].unique()))
+    sub = sub.assign(county_code=sub["county"].map(lookup))
+    merged = sub.merge(keys, left_on=["county_code", "year", "doy"], right_on=["county", "year", "doy"],
+                       suffixes=("", "_k"), validate="one_to_one")
+    obs = merged["positive"].to_numpy()
+    w = ver.bootstrap_weights(merged, "year", N_BOOT)
+    cols = {"operational_risk": "score", "updated_national": "national_calendar", "updated_county": "county_calendar",
+            "frozen_national": "frozen_national", "frozen_county": "frozen_county"}
+    draws = {k: ref.weighted_auc(w, merged[c].to_numpy(), obs) for k, c in cols.items()}
+    row = {"model": model, "test_years": f"{first_test_year}-{int(merged['year'].max())}", "units": len(merged),
+           "events": int(obs.sum()), **{f"AUC_{k}": ref.auc(merged[c].to_numpy(), obs) for k, c in cols.items()}}
+    for name, a, b in (("updated_county_minus_frozen_county", "updated_county", "frozen_county"),
+                       ("updated_county_minus_updated_national", "updated_county", "updated_national"),
+                       ("frozen_county_minus_frozen_national", "frozen_county", "frozen_national"),
+                       ("updated_county_minus_operational", "updated_county", "operational_risk"),
+                       ("frozen_county_minus_operational", "frozen_county", "operational_risk")):
+        row[name] = row[f"AUC_{a}"] - row[f"AUC_{b}"]
+        row[f"{name}_year_low"], row[f"{name}_year_high"] = ver.interval(draws[a] - draws[b])
+    return [row]
+
+
 def roc_rows(preds: pd.DataFrame, model: str) -> list[dict]:
     """Points of the ROC curve of each forecast, and of the fixed July-August calendar."""
     obs = preds["positive"].to_numpy()
@@ -212,7 +243,7 @@ def main() -> None:
     all_units = pd.read_csv(args.out / "results" / "verification_units.csv", dtype={"province": str})
     all_preds = pd.read_csv(args.out / "results" / "local_calendar_predictions.csv", dtype={"province": str})
     rng = np.random.default_rng(ver.SEED)
-    m04, m05, m06, m07, m08, m09, m10, m11, m12, nulls = [], [], [], [], [], [], [], [], [], []
+    m04, m05, m06, m07, m08, m09, m10, m11, m12, m14, nulls = [], [], [], [], [], [], [], [], [], [], []
     for model, units in all_units.groupby("model", sort=False):
         units = units.reset_index(drop=True)
         preds = all_preds[all_preds["model"] == model].reset_index(drop=True)
@@ -230,6 +261,7 @@ def main() -> None:
             m10 += yearly_rows(preds, model)
             m11 += reliability_rows(preds, model)
             m12 += roc_rows(preds, model)
+            m14 += updating_rows(d, preds, model)
         print(model, "done", flush=True)
     t = args.out / "tables"
     pd.DataFrame(m05).to_csv(t / "M05_county_label_permutation.csv", index=False)
@@ -244,6 +276,7 @@ def main() -> None:
     pd.DataFrame(m10).to_csv(t / "M10_scores_by_year.csv", index=False)
     pd.DataFrame(m11).to_csv(t / "M11_reliability.csv", index=False)
     pd.DataFrame(m12).round({"POFD": 6, "POD": 6}).to_csv(t / "M12_roc_points.csv", index=False)
+    pd.DataFrame(m14).to_csv(t / "M14_updated_versus_frozen.csv", index=False)
 
 
 if __name__ == "__main__":

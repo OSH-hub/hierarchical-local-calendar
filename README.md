@@ -19,8 +19,8 @@ Every number and figure of the article is produced by the scripts in `src/` and 
 | `src/run_reanalysis.py` | Verification of the operational warning (tables R01-R05, R10) |
 | `src/run_controls.py` | Timing controls and their validation, data flow (tables R06-R09) |
 | `src/run_local_model.py` | Evaluation of the local calendar, learning curve, new-county adaptation (tables M01-M03) |
-| `src/run_local_checks.py` | Sensitivity, permutation test, value, county table, ROC points (tables M04-M13) |
-| `src/render_figures.py` | Figures 1-20 of the article |
+| `src/run_local_checks.py` | Sensitivity, permutation test, value, county table, ROC points, updating (tables M04-M14) |
+| `src/render_figures.py` | Figures 1-19 and Figure S1 of the article |
 | `src/run_all.py` | Runs all of the above in order |
 | `examples/` | Synthetic data generator and an end-to-end example |
 | `tests/` | Unit tests and an end-to-end test on synthetic data |
@@ -105,6 +105,7 @@ random draws use the seed 20261026, and two independent runs gave identical tabl
 | M11 | Reliability of the predicted probabilities |
 | M12 | Points of the ROC curves |
 | M13 | County-label permutation null distribution |
+| M14 | Updated and frozen calendars on the same test years |
 
 ## Licence
 

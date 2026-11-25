@@ -79,7 +79,7 @@ def fig01_workflow(c: Ctx) -> None:
     def arrow(a, b):
         ax.add_patch(FancyArrowPatch(a, b, arrowstyle="-|>", mutation_scale=11, lw=1.2, color=MUTED))
 
-    box(1, 23, 21, 15, "County surveillance", "NCPMS open API\n212 / 101 / 1,594 county-years\nsurveys every ~15 days", COLOR["county_calendar"])
+    box(1, 23, 21, 15, "County surveillance", "NCPMS open API\n212 / 101 / 1594 county-years\nsurveys every ~15 days", COLOR["county_calendar"])
     box(1, 2, 21, 15, "Operational archive", "national weather-driven model\ndaily risk level per county", COLOR["operational"])
     box(27, 23, 21, 15, "First-detection units", "one unit per at-risk survey\nevent = first positive survey\nnegative surveys retained", COLOR["county_calendar"])
     box(53, 23, 21, 15, "Hierarchical local calendar", "nation -> province -> county\ntiming shift and height ratio\nshrunk towards the parent", COLOR["county_calendar"])
@@ -199,7 +199,7 @@ def fig03_model_concept(c: Ctx) -> None:
         low = t.sort_values("height_ratio").iloc[max(1, len(t) // 6)]
         nat = g[g["level"] == "national"]
         ax.plot(nat["day_of_year"], nat["probability"], color=INK, lw=2, label="National calendar")
-        for row, ls, tag in ((high, "-", "high-risk county"), (low, "--", "low-risk county")):
+        for row, ls, tag in ((high, "-", "county above national"), (low, "--", "county below national")):
             q = g[g["county"] == row["county"]]
             ax.plot(q["day_of_year"], q["probability"], color=COLOR["county_calendar"], ls=ls,
                     label=f"{tag}: ratio {row['height_ratio']:.2f}, shift {row['timing_shift_days']:+.0f} d")
@@ -213,29 +213,30 @@ def fig03_model_concept(c: Ctx) -> None:
 
 
 # ------------------------------------------------------------------ 7 timing controls
-def fig07_timing_controls(c: Ctx) -> None:
+def fig19_timing_controls(c: Ctx) -> None:
     v = c.table("R08_timing_controls_validation.csv").set_index("model")
     fig, ax = plt.subplots(figsize=(5.2, 2.9))
     x = np.arange(3)
     bars = (("rejection_rate_circular_POD", "Circular shift", COLOR["operational"]),
-            ("rejection_rate_year_perm_PSS", "Year permutation", COLOR["county_calendar"]))
+            ("rejection_rate_year_perm_POD", "Year permutation", COLOR["county_calendar"]))
     for k, (col, label, color) in enumerate(bars):
         vals = [v.loc[m, col] for m in DISEASES]
         ax.bar(x + (k - 0.5) * 0.36, vals, 0.32, color=color, label=label)
         for xi, val in zip(x, vals):
-            ax.annotate(f"{val:.0%}", (xi + (k - 0.5) * 0.36, val), xytext=(0, 3), textcoords="offset points",
+            ax.annotate(f"{val:.1%}", (xi + (k - 0.5) * 0.36, val), xytext=(0, 3), textcoords="offset points",
                         ha="center", fontsize=7.5, color=INK)
     ax.axhline(0.05, color=MUTED, lw=0.8, ls="--")
-    ax.annotate("nominal 5%", (0.5, 0.05), xytext=(0, 3), textcoords="offset points", ha="center", fontsize=7, color=MUTED)
+    ax.annotate("nominal 5%", (2.62, 0.05), xytext=(0, 3), textcoords="offset points", ha="right", fontsize=7, color=MUTED)
+    ax.set_xlim(-0.5, 2.65)
     ax.set(xticks=x, xticklabels=[n.replace(" ", "\n", 1) for n in DISEASES.values()], ylim=(0, 1.12),
            ylabel="Uninformative archives\ndeclared significant")
     ax.grid(axis="x", visible=False)
     ax.legend(loc="lower left", bbox_to_anchor=(0, 1.0), fontsize=7.5, ncol=2)
-    c.save(fig, "figure07_timing_control_validation")
+    c.save(fig, "figure19_timing_control_validation")
 
 
 # ------------------------------------------------------------------ 8 year-permutation null
-def fig08_year_permutation(c: Ctx) -> None:
+def figS1_year_permutation(c: Ctx) -> None:
     null = c.table("R10_year_permutation_null.csv")
     r04 = c.table("R04_year_permutation_control.csv")
     r04 = r04[(r04["window"] == 45) & (r04["frame"] == "first_detection") & (r04["subset"] == "all_years")]
@@ -249,11 +250,11 @@ def fig08_year_permutation(c: Ctx) -> None:
                     xytext=(5, 0), textcoords="offset points", fontsize=7.5, color=INK)
         ax.set(title=name, xlabel=f"Peirce skill score, risk level >= {ACTION[model]}")
     axes[0].set_ylabel("Year permutations")
-    c.save(fig, "figure08_year_permutation")
+    c.save(fig, "figureS1_year_permutation")
 
 
 # ------------------------------------------------------------------ 9 ROC
-def fig09_roc(c: Ctx) -> None:
+def fig07_roc(c: Ctx) -> None:
     roc = c.table("M12_roc_points.csv")
     scores = c.table("M01_local_calendar_scores.csv")
     scores = scores[scores["design"] == "rolling_origin"].set_index(["model", "forecast"])
@@ -276,11 +277,11 @@ def fig09_roc(c: Ctx) -> None:
                xlabel="Probability of false detection")
         ax.legend(loc="lower right", fontsize=7, title="Area under curve", title_fontsize=7)
     axes[0].set_ylabel("Probability of detection")
-    c.save(fig, "figure09_roc_rolling_origin")
+    c.save(fig, "figure07_roc_rolling_origin")
 
 
 # ------------------------------------------------------------------ 10 levels
-def fig10_levels(c: Ctx) -> None:
+def fig08_levels(c: Ctx) -> None:
     s = c.table("M01_local_calendar_scores.csv")
     s = s[s["design"] == "rolling_origin"].set_index(["model", "forecast"])
     order = [("operational", "operational_risk"), ("national_calendar", "national_calendar"),
@@ -297,11 +298,11 @@ def fig10_levels(c: Ctx) -> None:
         ax.set(title=name, yticks=[-i for i in range(4)], xlim=(0.45, 0.95), ylim=(-3.6, 0.7),
                yticklabels=[LABEL[k] for k, _ in order] if ax is axes[0] else [], xlabel="Area under the ROC curve")
         ax.grid(axis="y", visible=False)
-    c.save(fig, "figure10_levels_of_adaptation")
+    c.save(fig, "figure08_levels_of_adaptation")
 
 
 # ------------------------------------------------------------------ 11 county-label permutation
-def fig11_label_permutation(c: Ctx) -> None:
+def fig09_label_permutation(c: Ctx) -> None:
     null = c.table("M13_county_label_permutation_null.csv")
     m05 = c.table("M05_county_label_permutation.csv").set_index("model")
     fig, axes = three_panels(2.8)
@@ -313,11 +314,11 @@ def fig11_label_permutation(c: Ctx) -> None:
                     textcoords="offset points", ha="right", fontsize=7.5, color=INK)
         ax.set(title=name, xlabel="Area under the ROC curve")
     axes[0].set_ylabel("Permutations of county\ncalendars within provinces")
-    c.save(fig, "figure11_county_label_permutation")
+    c.save(fig, "figure09_county_label_permutation")
 
 
 # ------------------------------------------------------------------ 12 by year
-def fig12_by_year(c: Ctx) -> None:
+def fig10_by_year(c: Ctx) -> None:
     y = c.table("M10_scores_by_year.csv")
     fig, axes = three_panels(2.9, sharey=True)
     for ax, (model, name) in zip(axes, DISEASES.items()):
@@ -330,11 +331,11 @@ def fig12_by_year(c: Ctx) -> None:
         ax.set_xticklabels([str(v)[2:] for v in g["year"]])
     axes[0].set_ylabel("Area under the ROC curve")
     axes[1].legend(loc="lower center", bbox_to_anchor=(0.5, 1.12), fontsize=7.5, ncol=3)
-    c.save(fig, "figure12_scores_by_year")
+    c.save(fig, "figure10_scores_by_year")
 
 
 # ------------------------------------------------------------------ 13 learning curve
-def fig14_learning_curve(c: Ctx) -> None:
+def fig12_learning_curve(c: Ctx) -> None:
     lc = c.table("M02_learning_curve.csv")
     fig, axes = three_panels(2.9)
     for ax, (model, name) in zip(axes, DISEASES.items()):
@@ -347,11 +348,11 @@ def fig14_learning_curve(c: Ctx) -> None:
         ax.xaxis.get_major_locator().set_params(integer=True)
     axes[0].set_ylabel("Area under the ROC curve\n(held-out year)")
     axes[0].legend(loc="lower right", fontsize=7.5)
-    c.save(fig, "figure14_learning_curve")
+    c.save(fig, "figure12_learning_curve")
 
 
 # ------------------------------------------------------------------ 14 new-county adaptation
-def fig15_adaptation(c: Ctx) -> None:
+def fig13_adaptation(c: Ctx) -> None:
     ad = c.table("M03_new_county_adaptation.csv")
     fig, axes = three_panels(2.9)
     for ax, (model, name) in zip(axes, DISEASES.items()):
@@ -364,39 +365,35 @@ def fig15_adaptation(c: Ctx) -> None:
         ax.set(title=name, xlabel="Own years added (new county)")
         ax.xaxis.get_major_locator().set_params(integer=True)
     axes[0].set_ylabel("Area under the ROC curve\n(held-out county and year)")
-    c.save(fig, "figure15_new_county_adaptation")
+    c.save(fig, "figure13_new_county_adaptation")
 
 
 # ------------------------------------------------------------------ 15 updating
-def fig16_updating(c: Ctx) -> None:
-    s = c.table("M01_local_calendar_scores.csv")
-    s = s[s["forecast"] == "county_calendar"].set_index(["model", "design"])
-    designs = (("rolling_origin", "Updated every year"), ("fit_through_2019_test_2020_2025", "Frozen in 2019"))
-    fig, axes = plt.subplots(1, 2, figsize=(8.2, 2.9))
-    for ax, target, title in ((axes[0], "operational_risk", "Gain over the operational warning"),
-                              (axes[1], "national_calendar", "Gain over the national calendar")):
-        k = 0
-        ticks, names = [], []
-        for model in ("AMB", "RB_IR"):
-            for j, (design, label) in enumerate(designs):
-                q = s.loc[(model, design)]
-                v, lo, hi = (q[f"AUC_minus_{target}{x}"] for x in ("", "_year_low", "_year_high"))
-                ax.errorbar(v, -k, xerr=[[v - lo], [hi - v]], fmt="o" if j == 0 else "s", ms=6, capsize=3,
-                            color=COLOR["county_calendar"] if j == 0 else COLOR["fixed_calendar"])
-                ax.annotate(f"{v:+.3f}", (v, -k), xytext=(0, 7), textcoords="offset points", ha="center", fontsize=7.3, color=INK)
-                ticks.append(-k)
-                names.append(f"{DISEASES[model].replace('Apple ', '')}\n{label}")
-                k += 1
-            k += 0.5
-        ax.axvline(0, color=MUTED, lw=0.8)
-        ax.set(title=title, yticks=ticks, xlabel="Difference in ROC area", ylim=(min(ticks) - 0.7, 0.8))
-        ax.set_yticklabels(names if ax is axes[0] else [""] * len(ticks), fontsize=7.5)
-        ax.grid(axis="y", visible=False)
-    c.save(fig, "figure16_annual_updating")
+def fig14_updating(c: Ctx) -> None:
+    m = c.table("M14_updated_versus_frozen.csv").set_index("model")
+    rows = (("updated_county_minus_operational", "Updated every year", "o", COLOR["county_calendar"]),
+            ("frozen_county_minus_operational", "Frozen in 2019", "s", COLOR["fixed_calendar"]))
+    fig, ax = plt.subplots(figsize=(6.4, 2.7))
+    ticks, names, k = [], [], 0.0
+    for model in m.index:
+        for col, label, marker, color in rows:
+            v, lo, hi = m.loc[model, col], m.loc[model, f"{col}_year_low"], m.loc[model, f"{col}_year_high"]
+            ax.errorbar(v, -k, xerr=[[v - lo], [hi - v]], fmt=marker, ms=6, capsize=3, color=color)
+            ax.annotate(f"{v:+.3f}", (v, -k), xytext=(0, 7), textcoords="offset points", ha="center", fontsize=7.3, color=INK)
+            ticks.append(-k)
+            names.append(f"{DISEASES[model].replace('Apple ', '')}\n{label}")
+            k += 1
+        k += 0.5
+    ax.axvline(0, color=MUTED, lw=0.8)
+    ax.set(yticks=ticks, xlabel=f"Gain in ROC area over the operational warning, {m['test_years'].iloc[0]}",
+           ylim=(min(ticks) - 0.7, 0.8))
+    ax.set_yticklabels(names, fontsize=7.5)
+    ax.grid(axis="y", visible=False)
+    c.save(fig, "figure14_annual_updating")
 
 
 # ------------------------------------------------------------------ 16 reliability
-def fig17_reliability(c: Ctx) -> None:
+def fig15_reliability(c: Ctx) -> None:
     r = c.table("M11_reliability.csv")
     fig, axes = three_panels(3.0)
     for ax, (model, name) in zip(axes, DISEASES.items()):
@@ -410,11 +407,11 @@ def fig17_reliability(c: Ctx) -> None:
         ax.set(title=name, xlim=(0, top), ylim=(0, top), xlabel="Predicted probability")
     axes[0].set_ylabel("Observed frequency of first detection")
     axes[0].legend(loc="upper left", fontsize=7.5)
-    c.save(fig, "figure17_reliability")
+    c.save(fig, "figure15_reliability")
 
 
 # ------------------------------------------------------------------ 17 value
-def fig18_value(c: Ctx) -> None:
+def fig16_value(c: Ctx) -> None:
     v = c.table("M07_value_curves_local_calendar.csv")
     names = {"county_calendar": "county_calendar", "operational_best_threshold": "operational",
              "fixed_calendar_best": "fixed_calendar"}
@@ -435,11 +432,11 @@ def fig18_value(c: Ctx) -> None:
         ax.set(title=name, xlim=(0, 0.7), ylim=(0, 0.7), xlabel="Cost-loss ratio of protection")
     axes[0].set_ylabel("Relative economic value")
     axes[0].legend(loc="upper right", bbox_to_anchor=(1.0, 0.93), fontsize=6.8)
-    c.save(fig, "figure18_relative_value")
+    c.save(fig, "figure16_relative_value")
 
 
 # ------------------------------------------------------------------ 18 county calendars
-def fig19_county_calendars(c: Ctx) -> None:
+def fig17_county_calendars(c: Ctx) -> None:
     curves = c.table("M09_calendar_curves.csv", keep_default_na=False)
     table = c.table("M08_county_calendar_table.csv")
     fig, axes = three_panels(3.0)
@@ -457,11 +454,11 @@ def fig19_county_calendars(c: Ctx) -> None:
         month_axis(ax, lo, hi)
     axes[0].set_ylabel("Probability of first detection\nat an at-risk survey")
     axes[0].legend(loc="upper left", fontsize=7.5)
-    c.save(fig, "figure19_county_calendars")
+    c.save(fig, "figure17_county_calendars")
 
 
 # ------------------------------------------------------------------ 19 map of local risk
-def fig20_risk_map(c: Ctx) -> None:
+def fig18_risk_map(c: Ctx) -> None:
     xy = c.table("D01_county_coordinates.csv")
     table = c.table("M08_county_calendar_table.csv")
     fig, axes = plt.subplots(1, 3, figsize=(9.2, 4.0), sharex=True, sharey=True)
@@ -481,12 +478,12 @@ def fig20_risk_map(c: Ctx) -> None:
     cb.ax.set_yticklabels(["0.25", "0.5", "1", "2", "4"])
     cb.set_label("County height ratio (1 = national calendar)")
     for ext in ("png", "pdf"):
-        fig.savefig(c.out / f"figure20_local_risk_map.{ext}", dpi=600 if ext == "png" else None, bbox_inches="tight")
+        fig.savefig(c.out / f"figure18_local_risk_map.{ext}", dpi=600 if ext == "png" else None, bbox_inches="tight")
     plt.close(fig)
 
 
 # ------------------------------------------------------------------ 20 settings
-def fig13_settings(c: Ctx) -> None:
+def fig11_settings(c: Ctx) -> None:
     s = c.table("M04_settings_sensitivity.csv")
     fig, axes = three_panels(2.9)
     for ax, (model, name) in zip(axes, DISEASES.items()):
@@ -502,10 +499,10 @@ def fig13_settings(c: Ctx) -> None:
                yticks=range(grid.shape[0]), yticklabels=[f"{v:g}" for v in grid.index], xlabel="Prior strength (events)")
         ax.grid(False)
     axes[0].set_ylabel("Kernel bandwidth (days)")
-    c.save(fig, "figure13_settings_sensitivity")
+    c.save(fig, "figure11_settings_sensitivity")
 
 
-FIGURES = [fig01_workflow, fig02_study_area, fig03_model_concept, fig04_surveillance_matrix, fig05_survey_calendar, fig06_warning_archive, fig07_timing_controls, fig08_year_permutation, fig09_roc, fig10_levels, fig11_label_permutation, fig12_by_year, fig13_settings, fig14_learning_curve, fig15_adaptation, fig16_updating, fig17_reliability, fig18_value, fig19_county_calendars, fig20_risk_map]
+FIGURES = [fig01_workflow, fig02_study_area, fig03_model_concept, fig04_surveillance_matrix, fig05_survey_calendar, fig06_warning_archive, fig07_roc, fig08_levels, fig09_label_permutation, fig10_by_year, fig11_settings, fig12_learning_curve, fig13_adaptation, fig14_updating, fig15_reliability, fig16_value, fig17_county_calendars, fig18_risk_map, fig19_timing_controls, figS1_year_permutation]
 
 
 def main() -> None:
