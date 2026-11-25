@@ -6,7 +6,7 @@ authors:
   - family-names: Oh
     given-names: Seunghong
     affiliation: "ANCHOR Project Group, Konkuk University Glocal Campus"
-repository-code: "https://github.com/OSH-hub/disease-warning-verification"
+repository-code: "https://github.com/OSH-hub/hierarchical-local-calendar"
 license: MIT
 date-released: "2026-11-25"
 preferred-citation:
