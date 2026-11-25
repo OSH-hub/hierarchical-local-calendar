@@ -71,8 +71,9 @@ python src/run_all.py --project <project directory>
 
 The loader stops with an error if a risk or surveillance file differs from the checksums of
 the files used in the article. The run takes about five minutes on a desktop computer. All
-random draws use the seed 20261026; two independent runs gave byte-identical tables
-(`SHA256SUMS.txt`).
+random draws use the seed 20261026, and two independent runs gave identical tables.
+`SHA256SUMS.txt` lists the checksums of the released tables as stored in this repository
+(LF line endings); check them with `sha256sum -c SHA256SUMS.txt`.
 
 ## Tables
 
