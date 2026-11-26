@@ -236,7 +236,7 @@ def fig19_timing_controls(c: Ctx) -> None:
 
 
 # ------------------------------------------------------------------ 8 year-permutation null
-def figS1_year_permutation(c: Ctx) -> None:
+def fig_year_permutation_operational(c: Ctx) -> None:
     null = c.table("R10_year_permutation_null.csv")
     r04 = c.table("R04_year_permutation_control.csv")
     r04 = r04[(r04["window"] == 45) & (r04["frame"] == "first_detection") & (r04["subset"] == "all_years")]
@@ -250,7 +250,7 @@ def figS1_year_permutation(c: Ctx) -> None:
                     xytext=(5, 0), textcoords="offset points", fontsize=7.5, color=INK)
         ax.set(title=name, xlabel=f"Peirce skill score, risk level >= {ACTION[model]}")
     axes[0].set_ylabel("Year permutations")
-    c.save(fig, "figureS1_year_permutation")
+    c.save(fig, "year_permutation_operational_warning")
 
 
 # ------------------------------------------------------------------ 9 ROC
@@ -502,7 +502,7 @@ def fig11_settings(c: Ctx) -> None:
     c.save(fig, "figure11_settings_sensitivity")
 
 
-FIGURES = [fig01_workflow, fig02_study_area, fig03_model_concept, fig04_surveillance_matrix, fig05_survey_calendar, fig06_warning_archive, fig07_roc, fig08_levels, fig09_label_permutation, fig10_by_year, fig11_settings, fig12_learning_curve, fig13_adaptation, fig14_updating, fig15_reliability, fig16_value, fig17_county_calendars, fig18_risk_map, fig19_timing_controls, figS1_year_permutation]
+FIGURES = [fig01_workflow, fig02_study_area, fig03_model_concept, fig04_surveillance_matrix, fig05_survey_calendar, fig06_warning_archive, fig07_roc, fig08_levels, fig09_label_permutation, fig10_by_year, fig11_settings, fig12_learning_curve, fig13_adaptation, fig14_updating, fig15_reliability, fig16_value, fig17_county_calendars, fig18_risk_map, fig19_timing_controls, fig_year_permutation_operational]
 
 
 def main() -> None:

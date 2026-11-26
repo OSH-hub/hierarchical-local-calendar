@@ -20,11 +20,12 @@ Every number and figure of the article is produced by the scripts in `src/` and 
 | `src/run_controls.py` | Timing controls and their validation, data flow (tables R06-R09) |
 | `src/run_local_model.py` | Evaluation of the local calendar, learning curve, new-county adaptation (tables M01-M03) |
 | `src/run_local_checks.py` | Sensitivity, permutation test, value, county table, ROC points, updating (tables M04-M14) |
-| `src/render_figures.py` | Figures 1-19 and Figure S1 of the article |
+| `src/render_figures.py` | Figures 1-19 of the article and the year-permutation figure for the operational warning |
+| `src/make_article_tables.py` | Tables 4 and 5 of the article and the rows added to Table 3 (tables A01, A02) |
 | `src/run_all.py` | Runs all of the above in order |
 | `examples/` | Synthetic data generator and an end-to-end example |
 | `tests/` | Unit tests and an end-to-end test on synthetic data |
-| `tables/`, `figures/` | Released outputs; figure file names carry the figure numbers of the article |
+| `tables/`, `figures/` | Released outputs; figure file names carry the figure numbers of the article. `figures/year_permutation_operational_warning.*` is the year-permutation control applied to the operational warning (Section 3.4 of the article) |
 
 ## Requirements
 
@@ -47,7 +48,8 @@ python src/render_figures.py
 
 The example prints, for two synthetic diseases, the ROC area of the synthetic operational
 warning, the national calendar and the county calendar. The ten tests finish in a few
-seconds. The last command redraws all figures from the released tables.
+seconds. The last command redraws all figures from the released tables;
+`python src/make_article_tables.py` rebuilds Tables 4 and 5 of the article from them.
 
 ## Reproducing the tables
 
@@ -77,35 +79,44 @@ random draws use the seed 20261026, and two independent runs gave identical tabl
 
 ## Tables
 
-| Table | Content |
-|---|---|
-| D01 | Centre of the grid cells of each county |
-| D02 | Valid surveys and day of first detection per county-year |
-| D03 | Share of counties at or above each risk threshold by day and year |
-| D04 | Day of year of every valid survey and whether it was positive |
-| R01 | Contingency scores of the operational warning and the fixed calendars, with intervals |
-| R02 | ROC areas of the operational warning and the seasonal reference |
-| R03 | Paired differences between the operational warning and the fixed calendars |
-| R04 | Year-permutation control of the operational warning |
-| R05a, R05b | Cost-loss value of the operational warning and the fixed calendars |
-| R06 | Season gate fitted out of sample |
-| R07, R08 | Timing controls on the observed archive and on archives with no link to the outcome |
-| R09 | Records retained at each step |
-| R10 | Year-permutation null distribution |
-| M01 | Scores of the national, province and county calendars under three evaluation designs |
-| M02 | Learning curve |
-| M03 | Adaptation of a county new to the model |
-| M04 | Sensitivity to kernel bandwidth and prior strength |
-| M05 | County-label permutation test |
-| M06 | Scores among county-years surveyed on the usual schedule |
-| M07 | Cost-loss value of the calendars |
-| M08 | County calendar table: timing shift, height ratio and period of elevated risk per county |
-| M09 | Daily probability curves of the national and county calendars |
-| M10 | ROC area of each forecast in each test year |
-| M11 | Reliability of the predicted probabilities |
-| M12 | Points of the ROC curves |
-| M13 | County-label permutation null distribution |
-| M14 | Updated and frozen calendars on the same test years |
+The column "Article" names the section, table or figure of the article that each table supports.
+Tables marked "repository only" document the verification of the operational warning and the
+checks behind the article; the article does not show them.
+
+| Table | Content | Article |
+|---|---|---|
+| D01 | Centre of the grid cells of each county | Figures 2, 18 |
+| D02 | Valid surveys and day of first detection per county-year | Figures 2, 4, 5 |
+| D03 | Share of counties at or above each risk threshold by day and year | Figure 6 |
+| D04 | Day of year of every valid survey and whether it was positive | Figure 5 |
+| R01 | Contingency scores of the operational warning and the fixed calendars, with intervals | repository only |
+| R02 | ROC areas of the operational warning and the seasonal reference | repository only |
+| R03 | Paired differences between the operational warning and the fixed calendars | repository only |
+| R04 | Year-permutation control of the operational warning | Section 3.4 (p values); `figures/year_permutation_operational_warning` |
+| R05a, R05b | Cost-loss value of the operational warning and the fixed calendars | repository only |
+| R06 | Season gate fitted out of sample | repository only |
+| R07 | Timing controls on the observed archive | repository only |
+| R08 | Timing controls on archives with no link to the outcome | Section 3.4, Figure 19 |
+| R09 | Records retained at each step | Table 1 |
+| R10 | Year-permutation null distribution | `figures/year_permutation_operational_warning` |
+| M01 | Scores of the national, province and county calendars under three evaluation designs | Table 3, Table 5 (Brier skill), Figures 7, 8 |
+| M02 | Learning curve | Table 4, Figure 12 |
+| M03 | Adaptation of a county new to the model | Table 4, Figure 13 |
+| M04 | Sensitivity to kernel bandwidth and prior strength | Section 3.1, Figure 11 |
+| M05 | County-label permutation test | Table 3 (last row), Figure 9 |
+| M06 | Scores among county-years surveyed on the usual schedule | repository only |
+| M07 | Cost-loss value of the calendars | Table 5, Figure 16 |
+| M08 | County calendar table: timing shift, height ratio and period of elevated risk per county | Section 3.3, Table 5 (summary), Figures 3, 17, 18 |
+| M09 | Daily probability curves of the national and county calendars | Figures 3, 17 |
+| M10 | ROC area of each forecast in each test year | Table 3 (bitter rot, yearly values), Figures 7, 10 |
+| M11 | Reliability of the predicted probabilities | Figure 15 |
+| M12 | Points of the ROC curves | Figure 7 |
+| M13 | County-label permutation null distribution | Figure 9 |
+| M14 | Updated and frozen calendars on the same test years | Table 4, Figure 14 |
+| A01 | Table 4 of the article as printed (data efficiency), built from M02, M03 and M14 | Table 4 |
+| A02 | Table 5 of the article as printed (practical value), built from M01, M07 and M08 | Table 5 |
+
+The analysis settings of Table 2 of the article are the defaults of the scripts in `src/`.
 
 ## Licence
 

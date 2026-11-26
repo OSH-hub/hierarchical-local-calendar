@@ -1,0 +1,16 @@
+quantity,Marssonina blotch,Bitter rot,Rice leaf blast
+"Learning curve: national calendar, 2 training years",0.671,0.860,0.778
+"Learning curve: county calendar, 2 training years",0.709,0.866,0.795
+"Learning curve: county calendar, 5 training years",0.757,,0.814
+"Learning curve: county calendar, all training years",0.789 (10 years),0.877 (4 years),0.827 (11 years)
+New county: 0 own years added,0.665,0.847,0.801
+New county: 1 own year added,0.720,0.862,0.805
+New county: 2 own years added,0.737,0.876,0.808
+New county: 3 own years added,0.761,0.876,0.813
+New county: 4 own years added,0.769,0.870,0.815
+New county: 5 own years added,0.776,,0.818
+Annual updating: updated every year,0.747,,0.799
+Annual updating: frozen in 2019,0.695,,0.781
+Annual updating: updated minus frozen,0.052 (0.021 to 0.094),,0.018 (0.000 to 0.037)
+Annual updating: updated minus operational warning,0.114,,0.229
+Annual updating: frozen minus operational warning,0.062,,0.212

@@ -1,0 +1,8 @@
+quantity,Marssonina blotch,Bitter rot,Rice leaf blast
+Brier skill relative to the national calendar,0.048,0.095,0.036
+Cost-loss ratios with positive value: county calendar,41,54,44
+Cost-loss ratios with positive value: operational warning,16,22,6
+Cost-loss ratios with positive value: fixed calendar,19,16,9
+County calendar table: counties,24,24,137
+"County calendar table: timing shift, range (days)",-27 to +30,-36 to +23,-18 to +19
+"County calendar table: height ratio, range",0.23 to 2.35,0.14 to 2.10,0.11 to 2.73
