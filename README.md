@@ -19,6 +19,7 @@ Every number and figure of the article is produced by the scripts in `src/` and 
 | `src/run_reanalysis.py` | Verification of the operational warning (tables R01-R05, R10) |
 | `src/run_controls.py` | Timing controls and their validation, data flow (tables R06-R09) |
 | `src/run_local_model.py` | Evaluation of the local calendar, learning curve, new-county adaptation (tables M01-M03) |
+| `src/run_competitors.py` | Comparison with five competing forecasting models (table M15) |
 | `src/run_local_checks.py` | Sensitivity, permutation test, value, county table, ROC points, updating (tables M04-M14) |
 | `src/render_figures.py` | Figures 1-19 of the article and the year-permutation figure for the operational warning |
 | `src/make_article_tables.py` | Tables 4 and 5 of the article and the rows added to Table 3 (tables A01, A02) |
@@ -103,7 +104,7 @@ checks behind the article; the article does not show them.
 | M02 | Learning curve | Table 4, Figure 12 |
 | M03 | Adaptation of a county new to the model | Table 4, Figure 13 |
 | M04 | Sensitivity to kernel bandwidth and prior strength | Section 3.1, Figure 11 |
-| M05 | County-label permutation test | Table 3 (last row), Figure 9 |
+| M05 | County-label permutation test | Table 3 (permutation row), Figure 9 |
 | M06 | Scores among county-years surveyed on the usual schedule | repository only |
 | M07 | Cost-loss value of the calendars | Table 5, Figure 16 |
 | M08 | County calendar table: timing shift, height ratio and period of elevated risk per county | Section 3.3, Table 5 (summary), Figures 3, 17, 18 |
@@ -113,6 +114,7 @@ checks behind the article; the article does not show them.
 | M12 | Points of the ROC curves | Figure 7 |
 | M13 | County-label permutation null distribution | Figure 9 |
 | M14 | Updated and frozen calendars on the same test years | Table 4, Figure 14 |
+| M15 | County calendar against five competing models: unpooled county calendar, persistence, mixed-effects logistic regression, random forest, gradient boosting | Table 3 (competing models), Section 3.1 |
 | A01 | Table 4 of the article as printed (data efficiency), built from M02, M03 and M14 | Table 4 |
 | A02 | Table 5 of the article as printed (practical value), built from M01, M07 and M08 | Table 5 |
 

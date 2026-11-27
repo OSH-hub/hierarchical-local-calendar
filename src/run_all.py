@@ -14,7 +14,7 @@ from pathlib import Path
 
 SRC = Path(__file__).resolve().parent
 NEEDS_INPUT = ("run_data_summaries.py", "run_reanalysis.py", "run_controls.py")
-STEPS = NEEDS_INPUT + ("run_local_model.py", "run_local_checks.py", "render_figures.py")
+STEPS = NEEDS_INPUT + ("run_local_model.py", "run_competitors.py", "run_local_checks.py", "render_figures.py")
 
 
 def main() -> None:
