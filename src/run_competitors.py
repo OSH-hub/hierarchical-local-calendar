@@ -1,30 +1,4 @@
-"""Compare the hierarchical local calendar with competing forecasting models.
-
-Every competitor uses the surveillance record only, is refitted in each rolling-origin
-fold on the years before the test year, and is scored on the same at-risk units.
-Settings of all competitors were fixed before evaluation.
-
-Competitors
-  county_unpooled       the county calendar without partial pooling (prior strength 1e-6 events)
-  persistence           the county's most recent first-detection day before the test year,
-                        smoothed with a Gaussian of 15 days (one survey interval); 0 if not detected
-  logistic_mixed        logistic regression on a cubic B-spline of day of year (8 knots) with
-                        province and county effects shrunk toward zero (ridge penalty, C = 1),
-                        the penalized form of a random-intercept model
-  random_forest         500 trees, minimum leaf 20 units
-  gradient_boosting     histogram gradient boosting, 300 iterations, learning rate 0.05,
-                        15 leaves, minimum leaf 20 units
-The two tree models use day of year and county history from the years before each unit's
-year: share of surveyed years with a detection, mean first-detection day, years of history,
-detection in the most recent year and its day, and the same share for the province.
-
-Usage
------
-python src/run_competitors.py [--out <dir>]
-
-Reads results/verification_units.csv (run_reanalysis.py).
-Writes tables/M15_competing_models.csv
-"""
+"""Compare the hierarchical local calendar with competing forecasting models."""
 from __future__ import annotations
 
 import argparse
@@ -47,7 +21,6 @@ FEATURES = ["doy", "c_rate", "c_mean_doy", "c_years", "c_last_detected", "c_last
 
 
 def history_features(units: pd.DataFrame) -> pd.DataFrame:
-    """County and province history from the years strictly before each unit's year."""
     cy = (units.groupby(["county", "province", "year"])
           .apply(lambda g: pd.Series({"det": bool(g["positive"].any()),
                                       "fd": g.loc[g["positive"], "doy"].min() if g["positive"].any() else np.nan}),
@@ -137,7 +110,6 @@ def main() -> None:
                 row["county_calendar_minus_this_year_low"], row["county_calendar_minus_this_year_high"] = lo, hi
             if k != "persistence":
                 row["Brier"] = brier(v, obs)
-            # yearly AUC difference sign (bitter rot has two test years)
             yrs = sub["year"].to_numpy()
             diff = [ref.auc(p["county_calendar"][yrs == y], obs[yrs == y]) - ref.auc(v[yrs == y], obs[yrs == y])
                     for y in np.unique(yrs)]

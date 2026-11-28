@@ -1,12 +1,4 @@
-"""Robustness of the local calendar: settings, county-label permutation, survey schedule, value, county table.
-
-Usage
------
-python src/run_local_checks.py [--out <dir>]
-
-Reads results/verification_units.csv and results/local_calendar_predictions.csv.
-Writes tables/M04 ... M14.
-"""
+"""Robustness of the local calendar: settings, county-label permutation, survey schedule, value, county table."""
 from __future__ import annotations
 
 import argparse
@@ -28,7 +20,6 @@ FORECASTS = ("national_calendar", "province_calendar", "county_calendar")
 
 def rolling_predictions(d: dict, level: str = "county_calendar", predict_as: np.ndarray | None = None,
                         **settings) -> np.ndarray:
-    """Rolling-origin predictions; ``predict_as`` replaces the county whose fitted calendar each unit receives."""
     target = d if predict_as is None else {**d, "county": predict_as}
     pred = np.full(len(d["doy"]), np.nan)
     for train, test in rolling_folds(d):
@@ -51,13 +42,6 @@ def settings_rows(d: dict, model: str) -> list[dict]:
 
 
 def label_permutation_row(d: dict, model: str, rng: np.random.Generator) -> tuple[dict, np.ndarray]:
-    """Is the county level informative beyond the province level?
-
-    Calendars are fitted with the true county labels.  In each permutation every
-    test unit receives the fitted calendar of another county drawn from the same
-    province (one shuffle of counties within provinces, applied to all years).
-    The province part is unchanged, so the null isolates the county-specific part.
-    """
     def county_auc(county_codes: np.ndarray) -> float:
         p = rolling_predictions(d, predict_as=county_codes)
         ok = ~np.isnan(p)
@@ -77,7 +61,6 @@ def label_permutation_row(d: dict, model: str, rng: np.random.Generator) -> tupl
 
 
 def schedule_rows(units: pd.DataFrame, preds: pd.DataFrame, model: str) -> list[dict]:
-    """Does the county gain survive among county-years whose first survey fell on the usual date?"""
     per = units.groupby(["county", "year"])["doy"].agg(first="min").reset_index()
     typical = per["first"].median()
     subsets = {"all_county_years": per[["county", "year"]],
@@ -95,7 +78,6 @@ def schedule_rows(units: pd.DataFrame, preds: pd.DataFrame, model: str) -> list[
 
 
 def value_rows(preds: pd.DataFrame, model: str) -> list[dict]:
-    """Cost-loss value when action is taken if the predicted probability exceeds the cost-loss ratio."""
     obs = preds["positive"].to_numpy()
     base = obs.mean()
     w = ver.bootstrap_weights(preds, "year", N_BOOT)
@@ -130,7 +112,6 @@ def value_rows(preds: pd.DataFrame, model: str) -> list[dict]:
 
 
 def county_table(units: pd.DataFrame, d: dict, model: str) -> pd.DataFrame:
-    """The fitted product: for every county, when the local calendar puts the risk above the overall rate."""
     fitted = fit_on(d, np.ones(len(units), bool))
     counties = sorted(units["county"].unique())
     base = d["pos"].mean()
@@ -151,7 +132,6 @@ def county_table(units: pd.DataFrame, d: dict, model: str) -> pd.DataFrame:
 
 
 def yearly_rows(preds: pd.DataFrame, model: str) -> list[dict]:
-    """ROC area of each forecast in each rolling-origin test year."""
     rows = []
     for year, g in preds.groupby("year"):
         obs = g["positive"].to_numpy()
@@ -164,7 +144,6 @@ def yearly_rows(preds: pd.DataFrame, model: str) -> list[dict]:
 
 
 def reliability_rows(preds: pd.DataFrame, model: str, n_bins: int = 6) -> list[dict]:
-    """Observed event frequency in equal-count bins of the predicted probability."""
     rows = []
     for name in ("national_calendar", "county_calendar"):
         g = preds[[name, "positive"]].sort_values(name).reset_index(drop=True)
@@ -176,7 +155,6 @@ def reliability_rows(preds: pd.DataFrame, model: str, n_bins: int = 6) -> list[d
 
 
 def updating_rows(d: dict, preds: pd.DataFrame, model: str, first_test_year: int = 2020) -> list[dict]:
-    """Updated (rolling-origin) and frozen (fitted through the year before) calendars on the same test years."""
     train, test = d["year"] < first_test_year, d["year"] >= first_test_year
     if d["pos"][train].sum() < 10:
         return []
@@ -207,7 +185,6 @@ def updating_rows(d: dict, preds: pd.DataFrame, model: str, first_test_year: int
 
 
 def roc_rows(preds: pd.DataFrame, model: str) -> list[dict]:
-    """Points of the ROC curve of each forecast, and of the fixed July-August calendar."""
     obs = preds["positive"].to_numpy()
     rows = []
     for name, col in (("operational_risk", "score"), *((k, k) for k in FORECASTS)):
@@ -223,7 +200,6 @@ def roc_rows(preds: pd.DataFrame, model: str) -> list[dict]:
 
 
 def calendar_curves(units: pd.DataFrame, d: dict, model: str) -> pd.DataFrame:
-    """Daily probability curves of the calendar fitted on all years: national, and every county."""
     fitted = fit_on(d, np.ones(len(units), bool))
     counties = sorted(units["county"].unique())
     days = np.arange(1, 367)

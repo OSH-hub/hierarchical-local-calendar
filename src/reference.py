@@ -1,4 +1,3 @@
-"""Seasonal reference forecasts, weighted ROC area and a small logistic fit."""
 from __future__ import annotations
 
 import numpy as np
@@ -8,13 +7,6 @@ BIN_DAYS = 15
 
 
 def loyo_climatology(units: pd.DataFrame) -> np.ndarray:
-    """Leave-one-year-out seasonal climatology of a positive survey.
-
-    For every unit the probability is the smoothed positive fraction among
-    units of all other years whose survey fell in the same 15-day bin of the
-    year, (positives + 0.5) / (units + 1).  A bin unseen in the other years
-    takes their overall positive fraction.
-    """
     bins = (units["doy"].to_numpy() // BIN_DAYS).astype(int)
     year, pos = units["year"].to_numpy(), units["positive"].to_numpy().astype(float)
     out = np.empty(len(units))
@@ -28,7 +20,6 @@ def loyo_climatology(units: pd.DataFrame) -> np.ndarray:
 
 
 def fit_logistic(x: np.ndarray, y: np.ndarray, n_iter: int = 50) -> np.ndarray:
-    """Maximum-likelihood logistic regression by Newton steps; x includes the intercept."""
     beta = np.zeros(x.shape[1])
     for _ in range(n_iter):
         p = 1 / (1 + np.exp(-x @ beta))
@@ -41,10 +32,6 @@ def fit_logistic(x: np.ndarray, y: np.ndarray, n_iter: int = 50) -> np.ndarray:
 
 
 def loyo_combined(units: pd.DataFrame, climatology: np.ndarray, score: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Leave-one-year-out probability from logit(climatology) plus the warning score.
-
-    Returns the out-of-year predictions and the per-fold coefficient of the score.
-    """
     logit = np.log(climatology / (1 - climatology))
     x = np.column_stack([np.ones(len(units)), logit, score])
     y = units["positive"].to_numpy().astype(float)
@@ -58,7 +45,6 @@ def loyo_combined(units: pd.DataFrame, climatology: np.ndarray, score: np.ndarra
 
 
 def weighted_auc(weights: np.ndarray, score: np.ndarray, observed: np.ndarray, chunk: int = 250) -> np.ndarray:
-    """ROC area for each row of unit weights; ties in the score count one half."""
     order = np.argsort(score, kind="stable")
     s, o = np.asarray(score)[order], np.asarray(observed, float)[order]
     starts = np.r_[0, np.flatnonzero(np.diff(s) > 0) + 1]

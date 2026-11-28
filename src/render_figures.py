@@ -1,9 +1,4 @@
-"""Render all figures from the released tables.  No analysis happens here.
-
-Usage
------
-python src/render_figures.py [--out <dir>] [--only <figure number> ...]
-"""
+"""Render all figures from the released tables."""
 from __future__ import annotations
 
 import argparse
@@ -19,7 +14,6 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 DISEASES = {"AMB": "Apple Marssonina blotch", "ABR": "Apple bitter rot", "RB_IR": "Rice leaf blast"}
 ACTION = {"AMB": 3, "ABR": 3, "RB_IR": 2}
-# identity colours, fixed per forecast in every figure (checked for colour-vision deficiency)
 COLOR = {"county_calendar": "#2a78d6", "operational": "#eb6834", "national_calendar": "#1baf7a",
          "province_calendar": "#eda100", "fixed_calendar": "#6b6a66"}
 LABEL = {"county_calendar": "County calendar", "operational": "Operational warning",
@@ -65,7 +59,6 @@ def three_panels(height: float = 3.0, **kw):
     return plt.subplots(1, 3, figsize=(9.2, height), **kw)
 
 
-# ------------------------------------------------------------------ 1 workflow
 def fig01_workflow(c: Ctx) -> None:
     fig, ax = plt.subplots(figsize=(9.2, 3.6))
     ax.set(xlim=(0, 100), ylim=(0, 40))
@@ -93,7 +86,6 @@ def fig01_workflow(c: Ctx) -> None:
     c.save(fig, "figure01_workflow")
 
 
-# ------------------------------------------------------------------ 2 study area
 def fig02_study_area(c: Ctx) -> None:
     xy = c.table("D01_county_coordinates.csv")
     m = c.table("D02_first_detection_matrix.csv")
@@ -118,7 +110,6 @@ def fig02_study_area(c: Ctx) -> None:
     plt.close(fig)
 
 
-# ------------------------------------------------------------------ 3 surveillance record
 def fig04_surveillance_matrix(c: Ctx) -> None:
     m = c.table("D02_first_detection_matrix.csv")
     fig, axes = plt.subplots(1, 3, figsize=(9.2, 5.2), gridspec_kw={"width_ratios": [1.1, 0.6, 1.2]})
@@ -145,7 +136,6 @@ def fig04_surveillance_matrix(c: Ctx) -> None:
     plt.close(fig)
 
 
-# ------------------------------------------------------------------ 4 operational archive
 def fig06_warning_archive(c: Ctx) -> None:
     w = c.table("D03_warning_share_by_day.csv")
     fig, axes = three_panels(3.4)
@@ -164,7 +154,6 @@ def fig06_warning_archive(c: Ctx) -> None:
     plt.close(fig)
 
 
-# ------------------------------------------------------------------ 5 survey calendar
 def fig05_survey_calendar(c: Ctx) -> None:
     d = c.table("D04_survey_days.csv")
     m = c.table("D02_first_detection_matrix.csv")
@@ -187,7 +176,6 @@ def fig05_survey_calendar(c: Ctx) -> None:
     c.save(fig, "figure05_survey_calendar")
 
 
-# ------------------------------------------------------------------ 6 model concept
 def fig03_model_concept(c: Ctx) -> None:
     curves = c.table("M09_calendar_curves.csv", keep_default_na=False)
     table = c.table("M08_county_calendar_table.csv")
@@ -212,7 +200,6 @@ def fig03_model_concept(c: Ctx) -> None:
     c.save(fig, "figure03_model_concept")
 
 
-# ------------------------------------------------------------------ 7 timing controls
 def fig19_timing_controls(c: Ctx) -> None:
     v = c.table("R08_timing_controls_validation.csv").set_index("model")
     fig, ax = plt.subplots(figsize=(5.2, 2.9))
@@ -235,7 +222,6 @@ def fig19_timing_controls(c: Ctx) -> None:
     c.save(fig, "figure19_timing_control_validation")
 
 
-# ------------------------------------------------------------------ 8 year-permutation null
 def fig_year_permutation_operational(c: Ctx) -> None:
     null = c.table("R10_year_permutation_null.csv")
     r04 = c.table("R04_year_permutation_control.csv")
@@ -253,7 +239,6 @@ def fig_year_permutation_operational(c: Ctx) -> None:
     c.save(fig, "year_permutation_operational_warning")
 
 
-# ------------------------------------------------------------------ 9 ROC
 def fig07_roc(c: Ctx) -> None:
     roc = c.table("M12_roc_points.csv")
     scores = c.table("M01_local_calendar_scores.csv")
@@ -280,7 +265,6 @@ def fig07_roc(c: Ctx) -> None:
     c.save(fig, "figure07_roc_rolling_origin")
 
 
-# ------------------------------------------------------------------ 10 levels
 def fig08_levels(c: Ctx) -> None:
     s = c.table("M01_local_calendar_scores.csv")
     s = s[s["design"] == "rolling_origin"].set_index(["model", "forecast"])
@@ -301,7 +285,6 @@ def fig08_levels(c: Ctx) -> None:
     c.save(fig, "figure08_levels_of_adaptation")
 
 
-# ------------------------------------------------------------------ 11 county-label permutation
 def fig09_label_permutation(c: Ctx) -> None:
     null = c.table("M13_county_label_permutation_null.csv")
     m05 = c.table("M05_county_label_permutation.csv").set_index("model")
@@ -317,7 +300,6 @@ def fig09_label_permutation(c: Ctx) -> None:
     c.save(fig, "figure09_county_label_permutation")
 
 
-# ------------------------------------------------------------------ 12 by year
 def fig10_by_year(c: Ctx) -> None:
     y = c.table("M10_scores_by_year.csv")
     fig, axes = three_panels(2.9, sharey=True)
@@ -334,7 +316,6 @@ def fig10_by_year(c: Ctx) -> None:
     c.save(fig, "figure10_scores_by_year")
 
 
-# ------------------------------------------------------------------ 13 learning curve
 def fig12_learning_curve(c: Ctx) -> None:
     lc = c.table("M02_learning_curve.csv")
     fig, axes = three_panels(2.9)
@@ -351,7 +332,6 @@ def fig12_learning_curve(c: Ctx) -> None:
     c.save(fig, "figure12_learning_curve")
 
 
-# ------------------------------------------------------------------ 14 new-county adaptation
 def fig13_adaptation(c: Ctx) -> None:
     ad = c.table("M03_new_county_adaptation.csv")
     fig, axes = three_panels(2.9)
@@ -368,7 +348,6 @@ def fig13_adaptation(c: Ctx) -> None:
     c.save(fig, "figure13_new_county_adaptation")
 
 
-# ------------------------------------------------------------------ 15 updating
 def fig14_updating(c: Ctx) -> None:
     m = c.table("M14_updated_versus_frozen.csv").set_index("model")
     rows = (("updated_county_minus_operational", "Updated every year", "o", COLOR["county_calendar"]),
@@ -392,7 +371,6 @@ def fig14_updating(c: Ctx) -> None:
     c.save(fig, "figure14_annual_updating")
 
 
-# ------------------------------------------------------------------ 16 reliability
 def fig15_reliability(c: Ctx) -> None:
     r = c.table("M11_reliability.csv")
     fig, axes = three_panels(3.0)
@@ -410,7 +388,6 @@ def fig15_reliability(c: Ctx) -> None:
     c.save(fig, "figure15_reliability")
 
 
-# ------------------------------------------------------------------ 17 value
 def fig16_value(c: Ctx) -> None:
     v = c.table("M07_value_curves_local_calendar.csv")
     names = {"county_calendar": "county_calendar", "operational_best_threshold": "operational",
@@ -435,7 +412,6 @@ def fig16_value(c: Ctx) -> None:
     c.save(fig, "figure16_relative_value")
 
 
-# ------------------------------------------------------------------ 18 county calendars
 def fig17_county_calendars(c: Ctx) -> None:
     curves = c.table("M09_calendar_curves.csv", keep_default_na=False)
     table = c.table("M08_county_calendar_table.csv")
@@ -457,7 +433,6 @@ def fig17_county_calendars(c: Ctx) -> None:
     c.save(fig, "figure17_county_calendars")
 
 
-# ------------------------------------------------------------------ 19 map of local risk
 def fig18_risk_map(c: Ctx) -> None:
     xy = c.table("D01_county_coordinates.csv")
     table = c.table("M08_county_calendar_table.csv")
@@ -482,7 +457,6 @@ def fig18_risk_map(c: Ctx) -> None:
     plt.close(fig)
 
 
-# ------------------------------------------------------------------ 20 settings
 def fig11_settings(c: Ctx) -> None:
     s = c.table("M04_settings_sensitivity.csv")
     fig, axes = three_panels(2.9)

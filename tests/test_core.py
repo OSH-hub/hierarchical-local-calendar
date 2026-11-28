@@ -1,4 +1,3 @@
-"""Unit tests for the scores, the resampling tools and the local calendar.  Run with: pytest -q"""
 from __future__ import annotations
 
 import subprocess
@@ -50,7 +49,7 @@ def test_permutation_p_never_zero():
 def test_relative_value_of_perfect_forecast_is_one():
     alpha = np.array([0.1, 0.3, 0.5])
     assert np.allclose(ver.relative_value(1.0, 0.0, 0.3, alpha), 1.0)
-    assert ver.relative_value(1.0, 1.0, 0.3, alpha)[0] == pytest.approx(0.0)   # always warn equals climatology
+    assert ver.relative_value(1.0, 1.0, 0.3, alpha)[0] == pytest.approx(0.0)
 
 
 def test_bootstrap_weights_keep_cluster_structure():

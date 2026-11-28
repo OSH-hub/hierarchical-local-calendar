@@ -1,11 +1,4 @@
-"""Out-of-sample seasonal gating, validation of the timing controls, and the data-flow table.
-
-Usage
------
-python src/run_controls.py --project <project root> [--rice-daily <file>] [--out <dir>]
-
-Writes tables/R06 ... R09 as CSV.
-"""
+"""Out-of-sample seasonal gating, validation of the timing controls, and the data-flow table."""
 from __future__ import annotations
 
 import argparse
@@ -19,21 +12,16 @@ import verification as ver
 from loader import MODELS, load_records
 from run_reanalysis import ACTION, N_BOOT, N_PERM, THRESHOLDS, WINDOW, frame_of
 
-GATE_STEP = 5            # day-of-year grid for fitted season gates
-N_SIM = 200              # synthetic archives per model in the control validation
-N_SIM_DRAWS = 199        # permutations or shifts per synthetic archive
+GATE_STEP = 5
+N_SIM = 200
+N_SIM_DRAWS = 199
 
 
-# ---------------------------------------------------------------- R06 season gate fitted out of sample
 def pss(forecast: np.ndarray, obs: np.ndarray) -> float:
     return float(ver.scores(ver.table_counts(forecast, obs))["PSS"])
 
 
 def fit_gate(doy: np.ndarray, obs: np.ndarray, score: np.ndarray | None, thresholds) -> tuple:
-    """Choose (threshold, first day, last day) maximising PSS; threshold None means the gate alone.
-
-    Ties keep the earliest candidate in grid order, so the fit is deterministic.
-    """
     grid = range(int(doy.min()) // GATE_STEP * GATE_STEP, int(doy.max()) + GATE_STEP, GATE_STEP)
     best = (-np.inf, None)
     for t in (thresholds if score is not None else (None,)):
@@ -90,10 +78,7 @@ def gate_rows(units: pd.DataFrame, model: str) -> list[dict]:
     return rows
 
 
-# ---------------------------------------------------------------- R07/R08 timing controls
 class Archive:
-    """Daily risk as an array [county, year, day of year] with fast window maxima."""
-
     def __init__(self, records: dict, model: str):
         grid, self.years = ver.risk_by_doy(records, model)
         self.counties = sorted({c for c, _ in grid})
@@ -108,18 +93,13 @@ class Archive:
 
 def circular_shift_p(daily_cy: list[np.ndarray], eligible: list[tuple[int, int]], threshold: float,
                      n_draws: int, rng: np.random.Generator) -> tuple[float, float, float]:
-    """Circular-shift control of the submitted analysis, on event county-years.
-
-    daily_cy[i] is the risk series on the support of event i and eligible[i] the
-    index range of its detection window.  Returns observed POD, null mean and p.
-    """
     hits = np.zeros(n_draws)
     actual = 0
     for series, (a, b) in zip(daily_cy, eligible):
         warn = series >= threshold
         n = len(warn)
         csum = np.concatenate([[0], np.cumsum(np.tile(warn, 2))])
-        starts = (a - np.arange(n)) % n                       # window start after shifting by k days
+        starts = (a - np.arange(n)) % n
         any_hit = (csum[starts + (b - a + 1)] - csum[starts]) > 0
         actual += any_hit[0]
         hits += any_hit[rng.integers(0, n, n_draws)]
@@ -138,7 +118,6 @@ def control_rows(records: dict, model: str, rng: np.random.Generator) -> tuple[l
     pos = np.searchsorted(eval_cols, yi)
     t = ACTION[model]
 
-    # supports of event county-years for the circular shift: first survey - W to last survey
     span = units.groupby(["county", "year"])["doy"].agg(["min", "max"])
     events = q[q["positive"]]
     ev = [(arch.counties.index(r.county), arch.years.index(r.year), max(1, span.loc[(r.county, r.year), "min"] - WINDOW),
@@ -165,8 +144,6 @@ def control_rows(records: dict, model: str, rng: np.random.Generator) -> tuple[l
     sims = []
     nc, ny = arch.daily.shape[:2]
     for _ in range(N_SIM):
-        # a warning archive with the real seasonal pattern and no link to the outcome:
-        # every county-year receives the series of a random county in a different random year
         src_c = rng.integers(0, nc, (nc, ny))
         src_y = (np.arange(ny)[None, :] + rng.integers(1, ny, (nc, ny))) % ny
         sims.append(both_controls(arch.daily[src_c, src_y], N_SIM_DRAWS))
@@ -178,7 +155,6 @@ def control_rows(records: dict, model: str, rng: np.random.Generator) -> tuple[l
     return [real], [summary]
 
 
-# ---------------------------------------------------------------- R09 data flow
 def flow_rows(records: dict, flow: dict) -> list[dict]:
     rows = []
     for model in MODELS:

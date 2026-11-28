@@ -1,12 +1,4 @@
-"""Survey-level verification, seasonal reference, year-permutation control and value curves.
-
-Usage
------
-python src/run_reanalysis.py --project <project root> [--rice-daily <file>] [--out <dir>]
-
-Writes tables/R01 ... R05 and R10 as CSV, and results/verification_units.csv and
-results/run_metadata.json under --out.
-"""
+"""Survey-level verification, seasonal reference, year-permutation control and value curves."""
 from __future__ import annotations
 
 import argparse
@@ -23,7 +15,7 @@ import verification as ver
 from loader import MODELS, load_records
 
 THRESHOLDS = {"AMB": (1, 2, 3), "ABR": (1, 2, 3), "RB_IR": (1, 2, 4)}
-ACTION = {"AMB": 3, "ABR": 3, "RB_IR": 2}          # threshold used in the headline comparison
+ACTION = {"AMB": 3, "ABR": 3, "RB_IR": 2}
 PRIMARY = (("AMB", 3), ("ABR", 3), ("RB_IR", 2), ("RB_IR", 4))
 WINDOW = 45
 WINDOWS = (15, 30, 45, 60)
@@ -49,7 +41,6 @@ def frame_of(units: pd.DataFrame, donor: np.ndarray, frame: str) -> tuple[pd.Dat
     return units[keep].reset_index(drop=True), donor[keep]
 
 
-# ---------------------------------------------------------------- R01 contingency scores
 def contingency_rows(units: pd.DataFrame, model: str, label: dict, with_intervals: bool) -> list[dict]:
     obs = units["positive"].to_numpy()
     weights = {s: ver.bootstrap_weights(units, s, N_BOOT) for s in SCHEMES} if with_intervals else {}
@@ -68,7 +59,6 @@ def contingency_rows(units: pd.DataFrame, model: str, label: dict, with_interval
     return rows
 
 
-# ---------------------------------------------------------------- R02 discrimination and seasonal reference
 def discrimination_row(units: pd.DataFrame, model: str, label: dict) -> dict:
     obs = units["positive"].to_numpy()
     score = units["score"].to_numpy()
@@ -92,7 +82,6 @@ def discrimination_row(units: pd.DataFrame, model: str, label: dict) -> dict:
     return row
 
 
-# ---------------------------------------------------------------- R03 paired differences against the calendars
 def paired_rows(units: pd.DataFrame, model: str, label: dict) -> list[dict]:
     obs = units["positive"].to_numpy()
     fc = forecasts(units, model)
@@ -115,10 +104,8 @@ def paired_rows(units: pd.DataFrame, model: str, label: dict) -> list[dict]:
     return rows
 
 
-# ---------------------------------------------------------------- R04 year-permutation control
 def permutation_rows(units: pd.DataFrame, donor: np.ndarray, years: list[int], model: str, label: dict,
                      donor_years: list[int] | None = None, n_perm: int = N_PERM, keep_null: bool = False):
-    """Replace each evaluated year's warnings by another archive year's, the same map for all counties."""
     donor_years = donor_years or years
     cols = np.array([years.index(y) for y in donor_years])
     eval_years = sorted(units["year"].unique())
@@ -149,7 +136,6 @@ def permutation_rows(units: pd.DataFrame, donor: np.ndarray, years: list[int], m
     return (rows, null) if keep_null else rows
 
 
-# ---------------------------------------------------------------- R05 cost-loss value
 def value_rows(units: pd.DataFrame, model: str, label: dict) -> tuple[list[dict], list[dict]]:
     obs = units["positive"].to_numpy()
     base = obs.mean()

@@ -1,15 +1,4 @@
-"""Aggregate descriptions of the input data, used for the data figures.
-
-Usage
------
-python src/run_data_summaries.py --project <project root> [--rice-daily <file>] [--out <dir>]
-
-Writes
-  tables/D01_county_coordinates.csv      centre of the three grid cells of each county
-  tables/D02_first_detection_matrix.csv  per county-year: number of valid surveys and day of first detection
-  tables/D03_warning_share_by_day.csv    share of counties at or above each risk threshold, by day of year and year
-  tables/D04_survey_days.csv             day of year of every valid survey and whether it was positive
-"""
+"""Aggregate descriptions of the input data, used for the data figures."""
 from __future__ import annotations
 
 import argparse

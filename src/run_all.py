@@ -1,9 +1,4 @@
-"""Run the whole analysis in order: data summaries, verification, controls, local model, checks, figures.
-
-Usage
------
-python src/run_all.py --project <project root> [--rice-daily <file>] [--out <dir>]
-"""
+"""Run the whole analysis in order: data summaries, verification, controls, local model, checks, figures."""
 from __future__ import annotations
 
 import argparse

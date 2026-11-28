@@ -1,10 +1,3 @@
-"""End-to-end example on synthetic data: build units, fit the local calendar, score it.
-
-Usage
------
-python examples/make_synthetic_data.py example_data
-python examples/run_example.py example_data
-"""
 from __future__ import annotations
 
 import sys

@@ -1,13 +1,3 @@
-"""Write a small synthetic data set with the same file layout as the real inputs.
-
-The synthetic counties differ in how often and how early the disease is first
-detected, and the archived risk series follows the season only.  The files let
-the example and the tests run end to end without the public downloads.
-
-Usage
------
-python examples/make_synthetic_data.py <output directory>
-"""
 from __future__ import annotations
 
 import datetime as dt

@@ -1,9 +1,3 @@
-"""Load the four frozen inputs and build per county-year records.
-
-The filtering rules are identical to the submitted analysis: years <= 2025,
-numeric survey values only, apple counties keyed by name, rice counties keyed
-by province code and name, surveys kept only for counties with a risk series.
-"""
 from __future__ import annotations
 
 import datetime as dt
@@ -28,15 +22,14 @@ LAST_YEAR = 2025
 
 @dataclass
 class Record:
-    """One model x county x year: daily risk grid and valid surveys."""
     model: str
     county: str
     year: int
     province: str
-    days: np.ndarray      # proleptic ordinals, consecutive
-    risk: np.ndarray      # daily maximum risk level over the three grid cells
-    obs: np.ndarray       # survey ordinals, sorted
-    values: np.ndarray    # survey values
+    days: np.ndarray
+    risk: np.ndarray
+    obs: np.ndarray
+    values: np.ndarray
 
 
 RICE_DAILY = "data/pairing/pairing_daily_rice.csv"
@@ -51,12 +44,6 @@ def _read(root: Path, rel: str, override: Path | None = None, check_hash: bool =
 
 
 def load_records(root: Path, rice_daily: Path | None = None, check_hash: bool = True) -> tuple[dict[tuple[str, str, int], Record], dict]:
-    """Return records keyed by (model, county, year) and a flow-count dict.
-
-    ``rice_daily`` points to the raw-verified rice daily file when it is stored
-    outside ``root`` (see the source-correction amendment).  ``check_hash=False``
-    skips the checksum test; it is meant only for the synthetic example data.
-    """
     root = Path(root)
     ad = _read(root, "data/pairing/pairing_daily.csv", check_hash=check_hash)
     rd = _read(root, RICE_DAILY, rice_daily, check_hash, dtype={"sidoCode": str})

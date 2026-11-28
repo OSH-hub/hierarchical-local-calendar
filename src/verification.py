@@ -1,19 +1,3 @@
-"""Survey-level forecast verification of archived risk warnings.
-
-Verification unit
------------------
-Each valid survey of a county-year is one unit.  The forecast attached to a
-survey on day-of-year ``d`` is the highest archived risk level on any day in
-``[d - W, d]`` of the same county.  In the *first-detection* frame a county-year
-stays at risk until its first positive survey: units up to and including that
-survey are kept and later ones are dropped.  In the *all-survey* frame every
-survey is a unit and the observation is ``value > 0``.
-
-For every unit the same window maximum is also computed from the risk series of
-the same county in every other archive year.  These donor values drive the
-year-permutation control, which keeps each county's seasonal warning pattern
-and removes only the year-specific timing.
-"""
 from __future__ import annotations
 
 import datetime as dt
@@ -32,7 +16,6 @@ def _doy(ordinal: int) -> int:
 
 
 def risk_by_doy(records: dict, model: str) -> tuple[dict, list[int]]:
-    """Return {(county, year): array[367] of risk by day of year (NaN = no data)} and the year list."""
     grid, years = {}, set()
     for (m, c, y), r in records.items():
         if m != model:
@@ -45,16 +28,6 @@ def risk_by_doy(records: dict, model: str) -> tuple[dict, list[int]]:
 
 
 def build_units(records: dict, model: str, window: int = 45) -> tuple[pd.DataFrame, np.ndarray, list[int]]:
-    """Build the unit table and the donor-year score matrix.
-
-    Returns
-    -------
-    units : one row per valid survey (see module docstring for the frames)
-    donor : array (n_units, n_years); donor[i, j] is the window maximum for unit
-            i taken from archive year ``years[j]`` of the same county (NaN when
-            that county-year has no archived day in the window)
-    years : archive years, the column order of ``donor``
-    """
     grid, years = risk_by_doy(records, model)
     rows, donor = [], []
     for (m, c, y), r in records.items():
@@ -83,15 +56,12 @@ def build_units(records: dict, model: str, window: int = 45) -> tuple[pd.DataFra
     return pd.DataFrame(rows), np.array(donor, dtype=float), years
 
 
-# ---------------------------------------------------------------- 2x2 scores
 def table_counts(forecast: np.ndarray, observed: np.ndarray) -> np.ndarray:
-    """Return [hits, false alarms, misses, correct negatives]."""
     f, o = np.asarray(forecast, bool), np.asarray(observed, bool)
     return np.array([(f & o).sum(), (f & ~o).sum(), (~f & o).sum(), (~f & ~o).sum()], dtype=float)
 
 
 def scores(counts: np.ndarray) -> dict:
-    """Standard scores from counts with last axis [a, b, c, d]; works on stacked draws."""
     a, b, c, d = np.moveaxis(np.asarray(counts, float), -1, 0)
     n = a + b + c + d
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -105,7 +75,6 @@ def scores(counts: np.ndarray) -> dict:
 
 
 def auc_from_levels(level_counts: np.ndarray) -> np.ndarray:
-    """Area under the ROC curve from counts[..., level, outcome] with levels ascending."""
     neg, pos = level_counts[..., 0], level_counts[..., 1]
     below = np.cumsum(neg, axis=-1) - neg
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -120,11 +89,6 @@ def level_table(score: np.ndarray, observed: np.ndarray, levels: np.ndarray) -> 
 
 
 def relative_value(pod, pofd, base, alpha) -> np.ndarray:
-    """Relative economic value of a yes/no forecast in the static cost-loss model.
-
-    alpha is the cost-loss ratio C/L.  Value 1 is a perfect forecast, 0 equals
-    the better of never protecting and always protecting.
-    """
     alpha = np.asarray(alpha, float)
     climate = np.minimum(alpha, base)
     forecast = pofd * alpha * (1 - base) + pod * base * alpha + (1 - pod) * base
@@ -132,9 +96,7 @@ def relative_value(pod, pofd, base, alpha) -> np.ndarray:
         return (climate - forecast) / (climate - base * alpha)
 
 
-# ---------------------------------------------------------------- resampling
 def cluster_draws(labels: np.ndarray, n_boot: int, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
-    """Return (cluster index per unit, resampled multiplicity per draw and cluster)."""
     uniq, idx = np.unique(labels, return_inverse=True)
     pick = rng.integers(0, len(uniq), (n_boot, len(uniq)))
     mult = np.zeros((n_boot, len(uniq)))
@@ -143,11 +105,6 @@ def cluster_draws(labels: np.ndarray, n_boot: int, rng: np.random.Generator) -> 
 
 
 def bootstrap_weights(units: pd.DataFrame, scheme: str, n_boot: int = 5000, seed: int = SEED) -> np.ndarray:
-    """Unit weights (n_boot, n_units) for a cluster bootstrap.
-
-    scheme: 'year', 'county', or 'two_way' (years and counties resampled
-    independently, weights multiplied; the pigeonhole bootstrap).
-    """
     rng = np.random.default_rng(seed)
     if scheme in ("year", "county"):
         idx, mult = cluster_draws(units[scheme].to_numpy(), n_boot, rng)
@@ -181,15 +138,7 @@ def interval(draws: np.ndarray) -> tuple[float, float]:
     return float(lo), float(hi)
 
 
-# ---------------------------------------------------------------- year permutation
 def year_permutations(n_eval: int, n_donor: int, eval_pos: np.ndarray, n_perm: int, seed: int = SEED) -> np.ndarray:
-    """Random injective maps from evaluated years to donor years.
-
-    Each row gives, for every evaluated year, the donor-year column used in its
-    place.  The same map is applied to all counties, which keeps the spatial
-    dependence within a year.  When all donor years are evaluated years the map
-    is a permutation of them.
-    """
     rng = np.random.default_rng(seed)
     out = np.empty((n_perm, n_eval), dtype=int)
     for i in range(n_perm):
@@ -198,6 +147,5 @@ def year_permutations(n_eval: int, n_donor: int, eval_pos: np.ndarray, n_perm: i
 
 
 def permutation_p(observed: float, null: np.ndarray) -> float:
-    """One-sided Monte Carlo p value, (1 + #{null >= observed}) / (B + 1)."""
     null = null[np.isfinite(null)]
     return float((1 + (null >= observed - 1e-12).sum()) / (len(null) + 1))

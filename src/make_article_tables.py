@@ -1,9 +1,3 @@
-"""Tables 4 and 5 of the article, and the two rows added to Table 3, from the released tables.
-
-Usage: python src/make_article_tables.py
-Writes tables/A01_article_table4_data_efficiency.csv and
-tables/A02_article_table5_practical_value.csv and prints the rows of Table 3.
-"""
 from __future__ import annotations
 
 from pathlib import Path

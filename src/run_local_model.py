@@ -1,17 +1,4 @@
-"""Evaluate the hierarchical local calendar against the national references.
-
-Reads results/verification_units.csv written by run_reanalysis.py.
-
-Usage
------
-python src/run_local_model.py [--out <dir>]
-
-Writes
-  tables/M01_local_calendar_scores.csv     leave-one-year-out and temporal-split scores, all comparators
-  tables/M02_learning_curve.csv            skill against the number of training years
-  tables/M03_new_county_adaptation.csv     skill for a county unseen in training, then with k of its own years
-  results/local_calendar_predictions.csv   out-of-year predictions per unit
-"""
+"""Evaluate the hierarchical local calendar against the national references."""
 from __future__ import annotations
 
 import argparse
@@ -28,9 +15,9 @@ from run_reanalysis import ACTION, N_BOOT
 LEVELS = {"national_calendar": ("national", True, True), "province_calendar": ("province", True, True),
           "county_calendar": ("county", True, True), "county_timing_only": ("county", True, False),
           "county_height_only": ("county", False, True)}
-N_REPEAT = 20           # random draws of training years (learning curve) and own years (adaptation)
+N_REPEAT = 20
 MAX_OWN_YEARS = 5
-MIN_HISTORY = 3         # years of history before the first rolling-origin test year
+MIN_HISTORY = 3
 
 
 def encode(units: pd.DataFrame) -> dict:
@@ -49,7 +36,6 @@ def fit_on(d: dict, mask: np.ndarray, **settings) -> lc.LocalCalendar:
 
 
 def rolling_folds(d: dict) -> list[tuple[np.ndarray, np.ndarray]]:
-    """Each test year is predicted from all earlier years; at least MIN_HISTORY years of history."""
     years = np.unique(d["year"])
     return [(d["year"] < y, d["year"] == y) for y in years[MIN_HISTORY:]]
 
@@ -64,7 +50,6 @@ def brier(p: np.ndarray, o: np.ndarray) -> float:
 
 
 def matched_scores(score: np.ndarray, obs: np.ndarray, rate: float) -> dict:
-    """POD, POFD and PSS when the highest-scoring units are warned, as many as the reference warns."""
     k = int(round(rate * len(score)))
     order = np.argsort(-score, kind="stable")
     warn = np.zeros(len(score), bool)
@@ -140,7 +125,6 @@ def learning_curve(d: dict, model: str, rng: np.random.Generator) -> list[dict]:
 
 
 def new_county_adaptation(d: dict, model: str, rng: np.random.Generator) -> list[dict]:
-    """A county absent from training receives the province calendar; then k of its own years are added."""
     years = np.unique(d["year"])
     n_county = len(d["prov_of"])
     rows = []
@@ -162,7 +146,7 @@ def new_county_adaptation(d: dict, model: str, rng: np.random.Generator) -> list
                     fitted = fit_on(d, train)
                     pred[test] = predict_on(fitted, d, test, LEVELS["county_calendar"])
             ok = ~np.isnan(pred)
-            if d["pos"][ok].sum() < 5:      # too few counties have k other years of their own
+            if d["pos"][ok].sum() < 5:
                 break
             aucs.append(ref.auc(pred[ok], d["pos"][ok]))
             briers.append(brier(pred[ok], d["pos"][ok]))

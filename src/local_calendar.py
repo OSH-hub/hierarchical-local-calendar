@@ -1,18 +1,3 @@
-"""Hierarchical local calendar: first-detection hazard by day of year, adapted to province and county.
-
-The model has three nested levels.
-
-national   h(d): kernel-smoothed fraction of at-risk surveys on day of year d that turned positive
-province   the national curve shifted in time and scaled in height for the province
-county     the province curve shifted and scaled again for the county
-
-Shift and scale of a unit are shrunk towards its parent level, so a county with
-little history stays close to its province and a county with a long history
-follows its own record.  No weather or archived warning enters the model.
-
-Fixed settings (chosen before evaluation): Gaussian kernel bandwidth 10 days,
-prior strength 2 events for both the height ratio and the timing shift.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -33,15 +18,14 @@ def _kernel(bandwidth: float) -> np.ndarray:
 
 @dataclass
 class LocalCalendar:
-    hazard: np.ndarray           # national hazard by day of year, length 367
-    shift_province: np.ndarray   # days, per province
+    hazard: np.ndarray
+    shift_province: np.ndarray
     ratio_province: np.ndarray
-    shift_county: np.ndarray     # days, per county (already includes the province shift)
+    shift_county: np.ndarray
     ratio_county: np.ndarray
 
     def predict(self, doy: np.ndarray, county: np.ndarray, province: np.ndarray, level: str = "county",
                 use_shift: bool = True, use_ratio: bool = True) -> np.ndarray:
-        """Probability that an at-risk survey on ``doy`` is positive, at the requested level."""
         if level == "national":
             shift, ratio = np.zeros(len(doy)), np.ones(len(doy))
         elif level == "province":
@@ -58,11 +42,6 @@ class LocalCalendar:
 
 def fit(doy: np.ndarray, positive: np.ndarray, county: np.ndarray, province_of_county: np.ndarray,
         n_province: int, bandwidth: float = BANDWIDTH, prior: float = PRIOR_EVENTS) -> LocalCalendar:
-    """Fit the three levels from at-risk survey units.
-
-    doy, positive, county are per unit; county holds integer codes and
-    province_of_county maps each county code to its province code.
-    """
     pos = positive.astype(float)
     n_county = len(province_of_county)
     events = np.bincount(doy, weights=pos, minlength=367)
